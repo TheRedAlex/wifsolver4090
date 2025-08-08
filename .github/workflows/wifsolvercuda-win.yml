@@ -1,0 +1,41 @@
+name: Build WifSolverCuda (Win CUDA)
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CUDA Toolkit
+        uses: Jimver/cuda-toolkit@v0
+        with:
+          cuda: "12.4.1"
+
+      - name: Setup MSVC env
+        shell: cmd
+        run: |
+          call "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          where cl
+          where nvcc
+
+      - name: Build with NVCC
+        shell: cmd
+        run: |
+          call "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          nvcc -O3 -std=c++17 -arch=compute_89 -code=sm_89 --use_fast_math -Xptxas -v -Xcompiler "/O2 /MD /EHsc /nologo" ^
+            main.cu Worker1.cu ^
+            lib\Bech32.cpp lib\Int.cpp lib\IntGroup.cpp lib\IntMod.cpp lib\Point.cpp lib\SECP256K1.cpp lib\util.cpp lib\base58.c ^
+            lib\hash\ripemd160_portable.cpp lib\hash\sha256_sse.cpp ^
+            -o WifSolverCuda.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WifSolverCuda-win
+          path: WifSolverCuda.exe
