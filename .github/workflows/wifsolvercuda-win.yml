@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install CUDA Toolkit
-        uses: Jimver/cuda-toolkit@v0
+        uses: Jimver/cuda-toolkit@v0.2.18
         with:
           cuda: "12.4.1"
 
